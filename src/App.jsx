@@ -31,17 +31,23 @@ function TextToSpeechConverter() {
 			});
 			return;
 		}
-
+		
 		setLoading(true);
 		try {
-			const response = await axios.post(API_URL, {
+			const response1 = await axios.post(API_URL, {
 				text,
 				language: selectedLanguage,
+			}, {
+				headers: {
+					'Content-Type': 'application/json',
+				}
 			});
-
-			if (response.data.audio_file_url) {
-				enqueueSnackbar(response.data.message, { variant: "success" });
-				setAudioUrl(response.data.audio_file_url);
+			const response = JSON.parse(response1.data.body);
+			if (response.audio_file_url) {
+				enqueueSnackbar("Audio generated successfully", { variant: "success" });
+				// Add a timestamp to the URL to force reload
+				const timestamp = new Date().getTime();
+				setAudioUrl(`${response.audio_file_url}?t=${timestamp}`);
 			} else {
 				throw new Error("No audio URL received");
 			}
@@ -49,7 +55,7 @@ function TextToSpeechConverter() {
 			console.error("Error generating audio:", error);
 			enqueueSnackbar(
 				error.response?.data?.error ||
-					"Error generating audio. Please try again.",
+				"Error generating audio. Please try again.",
 				{ variant: "error" }
 			);
 			setAudioUrl("");
@@ -142,7 +148,7 @@ function TextToSpeechConverter() {
 
 								{audioUrl && (
 									<div className="p-4 bg-white/5 rounded-lg">
-										<audio className="w-full" controls src={audioUrl} />
+										<audio className="w-full" controls src={audioUrl} key={audioUrl} />
 									</div>
 								)}
 							</div>
